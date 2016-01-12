@@ -45,11 +45,8 @@
 #define EXTERN
 #endif
 
-EXTERN gotoblas_t  gotoblas_KATMAI;
-EXTERN gotoblas_t  gotoblas_COPPERMINE;
 EXTERN gotoblas_t  gotoblas_NORTHWOOD;
 EXTERN gotoblas_t  gotoblas_BANIAS;
-EXTERN gotoblas_t  gotoblas_ATHLON;
 
 extern gotoblas_t  gotoblas_PRESCOTT;
 extern gotoblas_t  gotoblas_ATOM;
@@ -167,8 +164,8 @@ static gotoblas_t *get_coretype(void){
     case 0x6:
       switch (exmodel) {
       case 0:
-	if (model <= 0x7) return &gotoblas_KATMAI;
-	if ((model == 0x8) || (model == 0xa) || (model == 0xb)) return &gotoblas_COPPERMINE;
+	if (model <= 0x7) return NULL;
+	if ((model == 0x8) || (model == 0xa) || (model == 0xb)) return NULL;
 	if ((model == 0x9) || (model == 0xd)) return &gotoblas_BANIAS;
 	if (model == 14) return &gotoblas_BANIAS;
 	if (model == 15) return &gotoblas_CORE2;
@@ -296,17 +293,7 @@ static gotoblas_t *get_coretype(void){
 
   if (vendor == VENDOR_AMD){
     if (family <= 0xe) {
-        // Verify that CPU has 3dnow and 3dnowext before claiming it is Athlon
-        cpuid(0x80000000, &eax, &ebx, &ecx, &edx);
-        if ( (eax & 0xffff)  >= 0x01) {
-            cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
-            if ((edx & (1 << 30)) == 0 || (edx & (1 << 31)) == 0)
-              return NULL;
-          }
-        else
           return NULL;
-
-        return &gotoblas_ATHLON;
       }
     if (family == 0xf){
       if ((exfamily == 0) || (exfamily == 2)) {
@@ -321,7 +308,7 @@ static gotoblas_t *get_coretype(void){
 	    return &gotoblas_BULLDOZER;
 	  else{
 	    openblas_warning(FALLBACK_VERBOSE, BARCELONA_FALLBACK);
-	    return &gotoblas_BARCELONA; //OS doesn't support AVX. Use old kernels.
+	    return &gotoblas_NEHALEM; //OS doesn't support AVX. Use old kernels.
 	  }
 	}else if(model == 2 || model == 3){
 	  //AMD Bulldozer Opteron 6300 / Opteron 4300 / Opteron 3300
@@ -329,7 +316,7 @@ static gotoblas_t *get_coretype(void){
 	    return &gotoblas_PILEDRIVER;
 	  else{
 	    openblas_warning(FALLBACK_VERBOSE, BARCELONA_FALLBACK);
-	    return &gotoblas_BARCELONA; //OS doesn't support AVX. Use old kernels.
+	    return &gotoblas_NEHALEM; //OS doesn't support AVX. Use old kernels.
 	  }
 	}else if(model == 0){
 	  if (exmodel == 1) {
@@ -338,7 +325,7 @@ static gotoblas_t *get_coretype(void){
 	      return &gotoblas_PILEDRIVER;
 	    else{
 	      openblas_warning(FALLBACK_VERBOSE, BARCELONA_FALLBACK);
-	      return &gotoblas_BARCELONA; //OS doesn't support AVX. Use old kernels.
+	      return &gotoblas_NEHALEM; //OS doesn't support AVX. Use old kernels.
 	    }
 	   }else if (exmodel == 3) {
 	    //AMD STEAMROLLER
@@ -346,14 +333,14 @@ static gotoblas_t *get_coretype(void){
 	      return &gotoblas_STEAMROLLER;
 	    else{
 	      openblas_warning(FALLBACK_VERBOSE, BARCELONA_FALLBACK);
-	      return &gotoblas_BARCELONA; //OS doesn't support AVX. Use old kernels.
+	      return &gotoblas_NEHALEM; //OS doesn't support AVX. Use old kernels.
 	    }
 	  }else if (exmodel == 6) {
 	    if(support_avx())
 	      return &gotoblas_EXCAVATOR;
 	    else{
 	      openblas_warning(FALLBACK_VERBOSE, BARCELONA_FALLBACK);
-	      return &gotoblas_BARCELONA; //OS doesn't support AVX. Use old kernels.
+	      return &gotoblas_NEHALEM; //OS doesn't support AVX. Use old kernels.
 	    }
 
 	  }
@@ -361,7 +348,7 @@ static gotoblas_t *get_coretype(void){
 
 
       } else {
-	return &gotoblas_BARCELONA;
+	return &gotoblas_NEHALEM;
       }
     }
   }
@@ -379,8 +366,6 @@ static gotoblas_t *get_coretype(void){
 
 static char *corename[] = {
     "Unknown",
-    "Katmai",
-    "Coppermine",
     "Northwood",
     "Prescott",
     "Banias",
@@ -389,7 +374,6 @@ static char *corename[] = {
     "Penryn",
     "Dunnington",
     "Nehalem",
-    "Athlon",
     "Opteron",
     "Opteron_SSE3",
     "Barcelona",
@@ -405,28 +389,25 @@ static char *corename[] = {
 
 char *gotoblas_corename(void) {
 
-  if (gotoblas == &gotoblas_KATMAI)       return corename[ 1];
-  if (gotoblas == &gotoblas_COPPERMINE)   return corename[ 2];
-  if (gotoblas == &gotoblas_NORTHWOOD)    return corename[ 3];
-  if (gotoblas == &gotoblas_PRESCOTT)     return corename[ 4];
-  if (gotoblas == &gotoblas_BANIAS)       return corename[ 5];
-  if (gotoblas == &gotoblas_ATOM)         return corename[ 6];
-  if (gotoblas == &gotoblas_CORE2)        return corename[ 7];
-  if (gotoblas == &gotoblas_PENRYN)       return corename[ 8];
-  if (gotoblas == &gotoblas_DUNNINGTON)   return corename[ 9];
-  if (gotoblas == &gotoblas_NEHALEM)      return corename[10];
-  if (gotoblas == &gotoblas_ATHLON)       return corename[11];
-  if (gotoblas == &gotoblas_OPTERON_SSE3) return corename[12];
-  if (gotoblas == &gotoblas_OPTERON)      return corename[13];
-  if (gotoblas == &gotoblas_BARCELONA)    return corename[14];
-  if (gotoblas == &gotoblas_NANO)         return corename[15];
-  if (gotoblas == &gotoblas_SANDYBRIDGE)  return corename[16];
-  if (gotoblas == &gotoblas_BOBCAT)       return corename[17];
-  if (gotoblas == &gotoblas_BULLDOZER)    return corename[18];
-  if (gotoblas == &gotoblas_PILEDRIVER)   return corename[19];
-  if (gotoblas == &gotoblas_HASWELL)      return corename[20];
-  if (gotoblas == &gotoblas_STEAMROLLER)  return corename[21];
-  if (gotoblas == &gotoblas_EXCAVATOR)    return corename[22];
+  if (gotoblas == &gotoblas_NORTHWOOD)    return corename[ 1];
+  if (gotoblas == &gotoblas_PRESCOTT)     return corename[ 2];
+  if (gotoblas == &gotoblas_BANIAS)       return corename[ 3];
+  if (gotoblas == &gotoblas_ATOM)         return corename[ 4];
+  if (gotoblas == &gotoblas_CORE2)        return corename[ 5];
+  if (gotoblas == &gotoblas_PENRYN)       return corename[ 6];
+  if (gotoblas == &gotoblas_DUNNINGTON)   return corename[ 7];
+  if (gotoblas == &gotoblas_NEHALEM)      return corename[ 8];
+  if (gotoblas == &gotoblas_OPTERON_SSE3) return corename[ 9];
+  if (gotoblas == &gotoblas_OPTERON)      return corename[10];
+  if (gotoblas == &gotoblas_BARCELONA)    return corename[11];
+  if (gotoblas == &gotoblas_NANO)         return corename[12];
+  if (gotoblas == &gotoblas_SANDYBRIDGE)  return corename[13];
+  if (gotoblas == &gotoblas_BOBCAT)       return corename[14];
+  if (gotoblas == &gotoblas_BULLDOZER)    return corename[15];
+  if (gotoblas == &gotoblas_PILEDRIVER)   return corename[16];
+  if (gotoblas == &gotoblas_HASWELL)      return corename[17];
+  if (gotoblas == &gotoblas_STEAMROLLER)  return corename[18];
+  if (gotoblas == &gotoblas_EXCAVATOR)    return corename[19];
 
   return corename[0];
 }
@@ -457,28 +438,25 @@ static gotoblas_t *force_coretype(char *coretype){
 
 	switch (found)
 	{
-		case 22: return (&gotoblas_EXCAVATOR);
-		case 21: return (&gotoblas_STEAMROLLER);
-		case 20: return (&gotoblas_HASWELL);
-		case 19: return (&gotoblas_PILEDRIVER);
-		case 18: return (&gotoblas_BULLDOZER);
-		case 17: return (&gotoblas_BOBCAT);
-		case 16: return (&gotoblas_SANDYBRIDGE);
-		case 15: return (&gotoblas_NANO);
-		case 14: return (&gotoblas_BARCELONA);
-		case 13: return (&gotoblas_OPTERON);
-		case 12: return (&gotoblas_OPTERON_SSE3);
-		case 11: return (&gotoblas_ATHLON);
-		case 10: return (&gotoblas_NEHALEM);
-		case  9: return (&gotoblas_DUNNINGTON);
-		case  8: return (&gotoblas_PENRYN);
-		case  7: return (&gotoblas_CORE2);
-		case  6: return (&gotoblas_ATOM);
-		case  5: return (&gotoblas_BANIAS);
-		case  4: return (&gotoblas_PRESCOTT);
-		case  3: return (&gotoblas_NORTHWOOD);
-		case  2: return (&gotoblas_COPPERMINE);
-		case  1: return (&gotoblas_KATMAI);
+		case 19: return (&gotoblas_EXCAVATOR);
+		case 18: return (&gotoblas_STEAMROLLER);
+		case 17: return (&gotoblas_HASWELL);
+		case 16: return (&gotoblas_PILEDRIVER);
+		case 15: return (&gotoblas_BULLDOZER);
+		case 14: return (&gotoblas_BOBCAT);
+		case 13: return (&gotoblas_SANDYBRIDGE);
+		case 12: return (&gotoblas_NANO);
+		case 11: return (&gotoblas_BARCELONA);
+		case 10: return (&gotoblas_OPTERON);
+		case  9: return (&gotoblas_OPTERON_SSE3);
+		case  8: return (&gotoblas_NEHALEM);
+		case  7: return (&gotoblas_DUNNINGTON);
+		case  6: return (&gotoblas_PENRYN);
+		case  5: return (&gotoblas_CORE2);
+		case  4: return (&gotoblas_ATOM);
+		case  3: return (&gotoblas_BANIAS);
+		case  2: return (&gotoblas_PRESCOTT);
+		case  1: return (&gotoblas_NORTHWOOD);
 	}
 	return(NULL);
 
@@ -507,16 +485,13 @@ void gotoblas_dynamic_init(void) {
   }
 
 #ifdef ARCH_X86
-  if (gotoblas == NULL) gotoblas = &gotoblas_KATMAI;
+  if (gotoblas == NULL) gotoblas = &ggotoblas_NORTHWOOD;
 #else
   if (gotoblas == NULL) gotoblas = &gotoblas_PRESCOTT;
   /* sanity check, if 64bit pointer we can't have a 32 bit cpu */
   if (sizeof(void*) == 8) {
-      if (gotoblas == &gotoblas_KATMAI ||
-          gotoblas == &gotoblas_COPPERMINE ||
-          gotoblas == &gotoblas_NORTHWOOD ||
-          gotoblas == &gotoblas_BANIAS ||
-          gotoblas == &gotoblas_ATHLON)
+      if (gotoblas == &gotoblas_NORTHWOOD ||
+          gotoblas == &gotoblas_BANIAS)
           gotoblas = &gotoblas_PRESCOTT;
   }
 #endif

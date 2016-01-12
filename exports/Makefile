@@ -92,8 +92,10 @@ dll  : ../$(LIBDLLNAME)
 ../$(LIBDLLNAME) : ../$(LIBNAME) libopenblas.def dllinit.$(SUFFIX)
 	$(RANLIB) ../$(LIBNAME)
 	$(CC) $(CFLAGS) $(LDFLAGS) libopenblas.def dllinit.$(SUFFIX) \
-	-shared -o ../$(LIBDLLNAME) -Wl,--out-implib,../$(LIBDLLNAME).a \
+	-shared -o ../$(LIBDLLNAME) -Wl,--stack,16777216 \
 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
+	dlltool -D $(LIBDLLNAME) -d libopenblas.def -l ../$(LIBDLLNAME).a
+	strip --strip-unneeded ../$(LIBDLLNAME).a
 
 libopenblas.def : gensymbol
 	perl ./gensymbol win2k    $(ARCH) dummy $(EXPRECISION) $(NO_CBLAS) $(NO_LAPACK) $(NO_LAPACKE) $(NEED2UNDERSCORES) $(ONLY_CBLAS) "$(SYMBOLPREFIX)" "$(SYMBOLSUFFIX)" $(BUILD_LAPACK_DEPRECATED) > $(@F)
