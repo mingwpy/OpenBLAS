@@ -485,7 +485,7 @@ void gotoblas_dynamic_init(void) {
   }
 
 #ifdef ARCH_X86
-  if (gotoblas == NULL) gotoblas = &ggotoblas_NORTHWOOD;
+  if (gotoblas == NULL) gotoblas = &gotoblas_NORTHWOOD;
 #else
   if (gotoblas == NULL) gotoblas = &gotoblas_PRESCOTT;
   /* sanity check, if 64bit pointer we can't have a 32 bit cpu */
