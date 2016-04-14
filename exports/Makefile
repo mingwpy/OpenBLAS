@@ -92,7 +92,7 @@ dll  : ../$(LIBDLLNAME)
 ../$(LIBDLLNAME) : ../$(LIBNAME) libopenblas.def dllinit.$(SUFFIX)
 	$(RANLIB) ../$(LIBNAME)
 	$(CC) $(CFLAGS) $(LDFLAGS) libopenblas.def dllinit.$(SUFFIX) \
-	-shared -o ../$(LIBDLLNAME) -Wl,--stack,16777216 \
+	-shared -o ../$(LIBDLLNAME) -Wl,--stack,4194304 \
 	-Wl,--whole-archive ../$(LIBNAME) -Wl,--no-whole-archive $(FEXTRALIB) $(EXTRALIB)
 	dlltool -D $(LIBDLLNAME) -d libopenblas.def -l ../$(LIBDLLNAME).a
 	strip --strip-unneeded ../$(LIBDLLNAME)
